@@ -47,7 +47,8 @@
         _config = [YTKNetworkConfig sharedInstance];
         _manager = [AFHTTPRequestOperationManager manager];
         _requestsRecord = [NSMutableDictionary dictionary];
-        _manager.operationQueue.maxConcurrentOperationCount = 4;
+        //JimBo Change 4 to 20 部分页面请求比较频繁，如果是4，则有时候会请求延迟较大
+        _manager.operationQueue.maxConcurrentOperationCount = 20;
         _manager.securityPolicy = _config.securityPolicy;
     }
     return self;
@@ -94,6 +95,11 @@
     }
     
     _manager.requestSerializer.timeoutInterval = [request requestTimeoutInterval];
+    
+    //JimBo Add 移除 NSNull 的数据 【这块可修改的原因：1.AF默认就是[AFJSONResponseSerializer serializer] 2.YTK对此也没有做其他修改，所以我们这边直接这么做，是木有问题的】
+    _manager.responseSerializer = [AFJSONResponseSerializer serializer];
+    ((AFJSONResponseSerializer *)_manager.responseSerializer).removesKeysWithNullValues = YES;
+    
 
     // if api need server username and password
     NSArray *authorizationHeaderFieldArray = [request requestAuthorizationHeaderFieldArray];
